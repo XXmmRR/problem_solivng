@@ -2,7 +2,6 @@ import random
 
 
 class Deck:
-
     '''
     Так как реализовать колоду максимум может быть 4 карты каждой масти как это хранить думаю можно сделать словарь
     в котором хранятся все карты первое значение это 1 значение карты второе значение это масть карты
@@ -36,6 +35,7 @@ class FoolGame:
         self.move = self._find_smallest_trump()
         self.players = [self.player_one, self.player_two]
         self.card_table = []
+        print(f'Козырь партии {self.trump}')
 
     def _give_cards_for_players(self, count_of_cards):
         user_deck = random.sample(self.deck.cards, count_of_cards)
@@ -74,20 +74,84 @@ class FoolGame:
             return False
 
     def hit_cards(self):
-        print('Выберите карту которую вы хотите отбить')
+        player_cards = self.players[self.move]
+        if player_cards == 0:
+            print(f'Пользователь {self.move}+1 выиграл')
+        print(self.card_table)
+        if len(self.card_table) >= 1:
+            hit_card_choose = int(input('Выберите карту которую вы хотите отбить ')) -1
+            hit_card = self.card_table[hit_card_choose]
+            print(hit_card)
+            cards = self._get_current_cards()
+            print(cards)
+            index = int(input(f'Игрок {self.move+1} Выберите Карту которой хотите отбить  или поднимите карты')) - 1
+
+            if index == -1:
+                for i in self.card_table:
+                    player_cards.append(i)
+                self.card_table.clear()
+                self.move = not self.move
+                return self.player_move()
+            card = player_cards[index]
+            print(card)
+            print(hit_card)
+            if card['suit'] == self.trump and hit_card['suit'] != self.trump:
+                player_cards.pop(index)
+                self.card_table.pop(hit_card_choose)
+                print('Вы отбили карту')
+                self.hit_cards()
+            elif hit_card['suit'] == card['suit'] and hit_card['value'] < card['value']:
+                player_cards.pop(index)
+                self.card_table.pop(hit_card_choose)
+                print('Вы отбили карту')
+                self.hit_cards()
+            else:
+                print('Вы не отбили карту')
+                self.hit_cards()
+        else:
+            player_cards = self.players[self.move]
+            if len(self.card_table) == 0:
+                card_len = 6 - len(player_cards)
+                if card_len > 0:
+                    if len(self.deck) > card_len:
+                        gave_cards = self._give_cards_for_players(card_len)
+                        player_cards.extend(gave_cards)
+                    else:
+                        if self.deck == 0:
+                            pass
+            print(f'Стол закончился пользователь {self.move+1} Ходите')
+            self.player_move()
 
     def player_move(self):
+        player_cards = self.players[self.move]
+        if len(self.card_table) == 0:
+            card_len = 6 - len(player_cards)
+            if card_len > 0:
+                if len(self.deck) > card_len:
+                    gave_cards = self._give_cards_for_players(card_len)
+                    player_cards.extend(gave_cards)
+                else:
+                    if self.deck == 0:
+                        pass
+        if player_cards == 0:
+            print(f'Игрок {self.move+1} выиграл')
+            return 1
         cards = self._get_current_cards()
         print('Текущий стол')
         print(self.card_table)
+
         print(cards)
         index = int(input(f'Игрок {self.move+1} Выберите Карты которые хотите скинуть или завершите ход ')) -1
         print(index)
         if index == -1:
+
             if len(self.card_table) >= 1:
                 print('Вы завершили ход')
+                self.move = not self.move
+                self.hit_cards()
             else:
                 print('Вы не можете завершить ход пока стол пустой')
+                self.player_move()
         player_cards = self.players[self.move]
         card = player_cards[index]
         if self._value_in_list(card['value']) and len(self.card_table) >= 1:

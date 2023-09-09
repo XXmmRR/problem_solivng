@@ -11,3 +11,4 @@ def O_n2_search_min(digits: list):
                 if min_digit >= i:
                     min_digit = i
     return min_digit
+
